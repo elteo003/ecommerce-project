@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "esnext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "incremental": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "types.d.ts",
+    "prisma/seed.js"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+// Descrizione del file tsconfig.json
+// Questo file è il file di configurazione di TypeScript per un progetto Next.js.
+// Contiene le opzioni del compilatore TypeScript, come il target ECMAScript, le librerie da includere,
+// le opzioni di controllo dei tipi e le impostazioni per la risoluzione dei moduli.
+// Serve a garantire che il codice TypeScript venga compilato correttamente e che le funzionalità di Next.js funzionino come previsto.
+// Perché è importante?
+// È importante perché TypeScript fornisce un sistema di tipi statici che aiuta a prevenire errori durante lo sviluppo,
+// migliorando la qualità del codice e facilitando la manutenzione. Inoltre, le opzioni di configurazione specifiche per Next.js assicurano che il progetto sia ottimizzato per le funzionalità del framework.
+// Come funziona?
+// Il file viene letto dal compilatore TypeScript quando si eseguono comandi come `tsc` o quando Next.js avvia il server di sviluppo.
+// Le opzioni specificate influenzano il modo in cui il codice TypeScript viene compilato e come vengono risolti i moduli.

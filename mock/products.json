@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "name": "Vaso Ferrari",
+    "collection": "Ceramica Toscana",
+    "image": "/img/vaso.png",
+    "description": "Vaso artigianale ispirato alla tradizione toscana.",
+    "price": 150
+  },
+  {
+    "id": 2,
+    "name": "Intarsio in Legno",
+    "collection": "Legno Intagliato",
+    "image": "/img/intarsio.png",
+    "description": "Opera in legno intagliato di pregio.",
+    "price": 200
+  }
+]
