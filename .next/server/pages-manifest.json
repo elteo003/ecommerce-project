@@ -3,5 +3,13 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
-  "/api/auth/me": "pages/api/auth/me.js"
+  "/prodotto/[id]": "pages/prodotto/[id].js",
+  "/api/auth/me": "pages/api/auth/me.js",
+  "/api/auth/logout": "pages/api/auth/logout.js",
+  "/login": "pages/login.js",
+  "/cart": "pages/cart.js",
+  "/scaffale/[slug]": "pages/scaffale/[slug].js",
+  "/api/cart": "pages/api/cart.js",
+  "/auth/artisan-login": "pages/auth/artisan-login.js",
+  "/api/auth/login": "pages/api/auth/login.js"
 }
