@@ -1,14 +1,6 @@
 {
   "/_app": "pages/_app.js",
-  "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js",
-  "/api/auth/me": "pages/api/auth/me.js",
-  "/prodotto/[id]": "pages/prodotto/[id].js",
-  "/api/cart": "pages/api/cart.js",
-  "/cart": "pages/cart.js",
-  "/api/orders": "pages/api/orders.js",
-  "/api/auth/logout": "pages/api/auth/logout.js",
-  "/login": "pages/login.js",
-  "/scaffale/[slug]": "pages/scaffale/[slug].js"
+  "/_error": "pages/_error.js",
+  "/": "pages/index.js"
 }

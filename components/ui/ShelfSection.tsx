@@ -1,10 +1,9 @@
-// components/ui/ShelfSection.tsx
 import React, { ReactNode } from 'react';
 import Link from 'next/link';
 
 export interface ShelfSectionProps {
   title: string;
-  href?: string;            // <— ora opzionale
+  href?: string;
   children: ReactNode;
 }
 
@@ -18,8 +17,11 @@ export default function ShelfSection({
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">{title}</h2>
         {href && (
-          <Link href={href}>
-            <a className="text-blue-600 hover:underline">Vedi tutti</a>
+          <Link
+            href={href}
+            className="text-blue-600 hover:underline"
+          >
+            Vedi tutti
           </Link>
         )}
       </div>

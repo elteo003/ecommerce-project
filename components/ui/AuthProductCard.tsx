@@ -1,4 +1,3 @@
-// components/ui/AuthProductCard.tsx
 import React from 'react';
 import Link from 'next/link';
 
@@ -9,35 +8,37 @@ export interface AuthProduct {
   price: number;
 }
 
-interface Props {
+interface AuthProductCardProps {
   product: AuthProduct;
   onAdd: () => void;
 }
 
-export default function AuthProductCard({ product, onAdd }: Props) {
+export default function AuthProductCard({ product, onAdd }: AuthProductCardProps) {
+  const imgSrc = product.image || '/img/default.jpg';
+
   return (
-    <div className="group bg-white rounded-2xl shadow-lg overflow-hidden transition-transform transform hover:scale-105">
-      <Link href={`/prodotto/${product.id}`}>  {/* usa rotta italiana */}
+    <div className="border rounded-lg overflow-hidden flex flex-col">
+      <Link
+        href={`/prodotto/${product.id}`}
+        className="block"
+      >
         <img
-          src={product.image ?? '/placeholder.png'}
+          src={imgSrc}
           alt={product.name}
-          className="w-full h-32 object-cover cursor-pointer"
+          className="w-full h-40 object-cover"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/img/default.jpg'; }}
         />
+        <div className="p-2">
+          <h3 className="font-semibold">{product.name}</h3>
+          <p className="mt-1 font-bold">€ {product.price.toFixed(2)}</p>
+        </div>
       </Link>
-      <div className="p-2">
-        <Link href={`/prodotto/${product.id}`}>  {/* corretto */}
-          <h3 className="text-base font-semibold text-black group-hover:text-red-500 transition-colors cursor-pointer">
-            {product.name}
-          </h3>
-        </Link>
-        <p className="font-bold text-sm">€{product.price.toFixed(2)}</p>
-        <button
-          onClick={onAdd}
-          className="mt-2 w-full px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
-        >
-          Aggiungi
-        </button>
-      </div>
+      <button
+        onClick={onAdd}
+        className="mt-auto bg-green-600 text-white py-2 hover:bg-green-700 transition"
+      >
+        Aggiungi al carrello
+      </button>
     </div>
   );
 }
