@@ -1,8 +1,8 @@
-// contexts/CartContext.tsx
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+// context/CartContext.tsx
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-interface CartItem {
-  productId: string;
+export interface CartItem {
+  id: string;
   name: string;
   price: number;
   quantity: number;
@@ -11,50 +11,57 @@ interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  totalQuantity: number;
+  pastOrders: CartItem[][];
   addItem: (item: CartItem) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const CartProvider = ({ children }: { children: ReactNode }) => {
+export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [pastOrders, setPastOrders] = useState<CartItem[][]>([]);
 
-  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+  // carica da localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("cart");
+    const past = localStorage.getItem("pastOrders");
+    if (saved) setItems(JSON.parse(saved));
+    if (past) setPastOrders(JSON.parse(past));
+  }, []);
+
+  // salva su localStorage
+  useEffect(() => { localStorage.setItem("cart", JSON.stringify(items)); }, [items]);
+  useEffect(() => { localStorage.setItem("pastOrders", JSON.stringify(pastOrders)); }, [pastOrders]);
 
   const addItem = (item: CartItem) => {
-    setItems(prev => {
-      const existing = prev.find(i => i.productId === item.productId);
-      if (existing) {
-        return prev.map(i =>
-          i.productId === item.productId ? { ...i, quantity: i.quantity + item.quantity } : i
+    setItems(curr => {
+      const exist = curr.find(i => i.id === item.id);
+      if (exist) {
+        return curr.map(i =>
+          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
         );
       }
-      return [...prev, item];
+      return [...curr, item];
     });
   };
 
-  const removeItem = (productId: string) => {
-    setItems(prev => prev.filter(i => i.productId !== productId));
-  };
-
-  const updateQuantity = (productId: string, quantity: number) => {
-    setItems(prev =>
-      prev.map(i => (i.productId === productId ? { ...i, quantity } : i))
-    );
+  const clearCart = () => {
+    if (items.length) {
+      setPastOrders(p => [...p, items]);
+      setItems([]);
+    }
   };
 
   return (
-    <CartContext.Provider value={{ items, totalQuantity, addItem, removeItem, updateQuantity }}>
+    <CartContext.Provider value={{ items, pastOrders, addItem, clearCart }}>
       {children}
     </CartContext.Provider>
   );
 };
 
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) throw new Error('useCart must be used within CartProvider');
-  return context;
-};
+export function useCart() {
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart deve essere usato dentro CartProvider");
+  return ctx;
+}

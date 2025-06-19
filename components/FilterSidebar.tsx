@@ -6,8 +6,9 @@ interface FilterSidebarProps {
   setOpen: (open: boolean) => void;
   maxPrice: number;
   setMaxPrice: (price: number) => void;
-  sortPriceAsc: boolean;
-  setSortPriceAsc: (val: boolean) => void;
+  /** true = crescente, false = decrescente */
+  sortAsc: boolean;
+  setSortAsc: (val: boolean) => void;
   selectedTags: string[];
   setSelectedTags: (tags: string[]) => void;
   selectedArtisans: string[];
@@ -21,8 +22,8 @@ export default function FilterSidebar({
   setOpen,
   maxPrice,
   setMaxPrice,
-  sortPriceAsc,
-  setSortPriceAsc,
+  sortAsc,
+  setSortAsc,
   selectedTags,
   setSelectedTags,
   selectedArtisans,
@@ -32,9 +33,8 @@ export default function FilterSidebar({
 }: FilterSidebarProps) {
   return (
     <aside
-      className={`fixed top-0 left-0 h-full w-64 bg-black text-white shadow-xl transform transition-transform duration-300 z-50 ${
-        open ? 'translate-x-0' : '-translate-x-full'
-      }`}
+      className={`fixed top-0 left-0 h-full w-64 bg-black text-white shadow-xl transform transition-transform duration-300 z-50 ${open ? 'translate-x-0' : '-translate-x-full'
+        }`}
     >
       <div className="flex flex-col h-full p-6">
         <button
@@ -44,7 +44,7 @@ export default function FilterSidebar({
           ✕
         </button>
 
-        <h3 className="text-2xl font-bold mb-6">Filtri & Ordine</h3>
+        <h3 className="text-2xl font-bold mb-6">Filtri &amp; Ordine</h3>
 
         {/* Filtro Prezzo */}
         <div className="mb-6">
@@ -66,14 +66,14 @@ export default function FilterSidebar({
         {/* Ordinamento Prezzo */}
         <div className="mb-6">
           <p className="font-medium mb-2">Ordina per prezzo</p>
-          <label className="flex items-center gap-2 mb-2">
+          <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={sortPriceAsc}
-              onChange={() => setSortPriceAsc(!sortPriceAsc)}
+              checked={sortAsc}
+              onChange={() => setSortAsc(!sortAsc)}
               className="accent-white"
             />
-            Ascendente
+            {sortAsc ? 'Crescente' : 'Decrescente'}
           </label>
         </div>
 
@@ -138,7 +138,7 @@ export default function FilterSidebar({
         <button
           onClick={() => {
             setMaxPrice(Infinity);
-            setSortPriceAsc(false);
+            setSortAsc(true);
             setSelectedTags([]);
             setSelectedArtisans([]);
             setSelectedMaterials([]);

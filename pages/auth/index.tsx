@@ -1,5 +1,4 @@
 // pages/auth/index.tsx
-
 import { GetServerSideProps, NextPage } from 'next';
 import React from 'react';
 import prisma from '../../utils/prisma';
@@ -35,7 +34,11 @@ const AuthHome: NextPage<AuthHomeProps> = ({ categories }) => {
 
             {/* Sezioni “scaffale” per ogni categoria */}
             {categories.map((cat) => (
-                <ShelfSection key={cat.slug} title={cat.name}>
+                <ShelfSection
+                    key={cat.slug}
+                    title={cat.name}
+                    href={`/scaffale/${cat.slug}`}
+                >
                     {cat.products.map((p) => (
                         <AuthProductCard
                             key={p.id}
@@ -49,17 +52,12 @@ const AuthHome: NextPage<AuthHomeProps> = ({ categories }) => {
     );
 };
 
-export default AuthHome;
-
-export const getServerSideProps: GetServerSideProps<AuthHomeProps> = async ({
-    req,
-}) => {
+export const getServerSideProps: GetServerSideProps<AuthHomeProps> = async ({ req }) => {
     const payload = getPayloadFromReq(req as any);
     if (!payload) {
         return { redirect: { destination: '/login', permanent: false } };
     }
 
-    // Prendi tutte le categorie con i primi 3 prodotti
     const cats = await prisma.category.findMany({
         include: {
             products: {
@@ -82,3 +80,5 @@ export const getServerSideProps: GetServerSideProps<AuthHomeProps> = async ({
 
     return { props: { categories } };
 };
+
+export default AuthHome;

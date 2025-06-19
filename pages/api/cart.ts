@@ -1,28 +1,64 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { authenticate } from '../../utils/auth';
-import prisma from '../../utils/prisma';
+// pages/cart.tsx
+import React from "react";
+import { useCart } from "../context/CartContext";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const userId = (req.user as any).id;
-  if (req.method === 'GET') {
-    const orders = await prisma.order.findMany({ where: { userId }, include: { products: true } });
-    const cartProducts = orders.flatMap(order => order.products);
-    res.status(200).json(cartProducts);
-  } else if (req.method === 'POST') {
-    const { productId } = req.body;
-    // Add to cart: create order with single product for simplicity
-    const order = await prisma.order.create({
-      data: {
-        userId,
-        products: {
-          connect: { id: productId }
-        }
-      }
-    });
-    res.status(201).json(order);
-  } else {
-    res.status(405).end();
-  }
+export default function CartPage() {
+    const { items, pastOrders, clearCart } = useCart();
+
+    return (
+        <div className= "max-w-3xl mx-auto p-6 space-y-8" >
+        <section>
+        <h2 className="text-2xl font-bold mb-4" > Carrello Attivo </h2>
+    {
+        items.length === 0 ? (
+            <p>Il carrello è vuoto.</p>
+        ) : (
+            <ul className= "space-y-2" >
+            {
+                items.map(i => (
+                    <li key= { i.id } className = "flex justify-between" >
+                    <span>{ i.name } × { i.quantity } </span>
+                    <span>€ {(i.price * i.quantity).toFixed(2)} </span>
+            </li>
+            ))
+    }
+    </ul>
+        )
 }
+{
+    items.length > 0 && (
+        <button
+            onClick={ clearCart }
+    className = "mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+        Checkout
+        </button>
+        )
+}
+</section>
 
-export default authenticate(handler);
+    < section >
+    <h2 className="text-2xl font-bold mb-4" > Ordini Passati </h2>
+{
+    pastOrders.length === 0 ? (
+        <p>Nessun ordine precedente.</p>
+        ) : (
+        pastOrders.map((order, idx) => (
+            <div key= { idx } className = "border p-4 rounded mb-4" >
+            <h3 className="font-semibold mb-2" > Ordine #{ idx + 1} </h3>
+                <ul>
+{
+    order.map(i => (
+        <li key= { i.id } className = "flex justify-between" >
+        <span>{ i.name } × { i.quantity } </span>
+        <span>€ {(i.price * i.quantity).toFixed(2)} </span>
+            </li>
+                ))}
+</ul>
+    </div>
+          ))
+        )}
+</section>
+    </div>
+  );
+}

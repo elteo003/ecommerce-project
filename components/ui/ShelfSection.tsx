@@ -1,29 +1,31 @@
 // components/ui/ShelfSection.tsx
-import React, { ReactNode } from 'react'
-import Link from 'next/link'
+import React, { ReactNode } from 'react';
+import Link from 'next/link';
 
-interface ShelfSectionProps {
-  title: string
-  slug: string
-  children: ReactNode
+export interface ShelfSectionProps {
+  title: string;
+  href?: string;            // <— ora opzionale
+  children: ReactNode;
 }
 
-export default function ShelfSection({ title, slug, children }: ShelfSectionProps) {
+export default function ShelfSection({
+  title,
+  href,
+  children,
+}: ShelfSectionProps) {
   return (
-    <section className="my-16">
-      <div className="flex justify-center items-center px-4 mb-24">
-        <Link href={`/scaffale/${slug}`}>
-          <h2 className="text-4xl font-bold text-white text-center cursor-pointer drop-shadow-lg">
-            {title}
-          </h2>
-        </Link>
+    <section className="px-4 py-8">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">{title}</h2>
+        {href && (
+          <Link href={href}>
+            <a className="text-blue-600 hover:underline">Vedi tutti</a>
+          </Link>
+        )}
       </div>
-      <div
-        className="grid gap-6 px-4 
-                   grid-cols-[repeat(auto-fit,minmax(150px,1fr))]"
-      >
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {children}
       </div>
     </section>
-  )
+  );
 }

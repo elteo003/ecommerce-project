@@ -1,92 +1,111 @@
-// pages/category/[slug].tsx
+// pages/scaffale/[slug].tsx
+import { GetServerSideProps, NextPage } from "next";
+import React, { useEffect, useState } from "react";
+import prisma from "../../utils/prisma";
+import Layout from "../../components/Layout";
+import { FiFilter } from "react-icons/fi";
+import FilterSidebar from "../../components/FilterSidebar";
+import ProductCard from "../../components/ui/ProductCard";
+import { getPayloadFromReq } from "../../utils/auth";
 
-import { GetServerSideProps, NextPage } from 'next';
-import React from 'react';
-import prisma from '../../utils/prisma';
-import { getPayloadFromReq } from '../../utils/auth';
-import Layout from '../../components/Layout';
-import ShelfSection from '../../components/ui/ShelfSection';
-import ProductCard, { Product as PublicProduct } from '../../components/ui/ProductCard';
-import AuthProductCard, { AuthProduct } from '../../components/ui/AuthProductCard';
+interface Product {
+    id: string;
+    name: string;
+    imageUrl?: string | null;
+    price?: number | null;
+}
 
 interface Props {
     title: string;
-    items: Array<AuthProduct | (PublicProduct & { price: null })>;
+    items: Product[];
+    isAuth: boolean;
 }
 
-const CategoryPage: NextPage<Props> = ({ title, items }) => {
-    const isAuth = items.length > 0 && (items[0] as AuthProduct).price !== null;
+const ScaffalePage: NextPage<Props> = ({ title, items, isAuth }) => {
+    const [open, setOpen] = useState(false);
+    const [maxPrice, setMaxPrice] = useState<number>(Infinity);
+    const [sortAsc, setSortAsc] = useState<boolean>(true);
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [selectedArtisans, setSelectedArtisans] = useState<string[]>([]);
+    const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
+    const [filtered, setFiltered] = useState<Product[]>(items);
 
-    const addToCart = async (id: string) => {
-        await fetch('/api/cart', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId: id }),
-        });
-        window.location.reload();
-    };
+    useEffect(() => {
+        let data = [...items];
+        // applica filtro prezzo
+        if (maxPrice < Infinity) {
+            data = data.filter(p => (p.price ?? 0) <= maxPrice);
+        }
+        // applica ordinamento
+        data.sort((a, b) =>
+            sortAsc
+                ? ((a.price ?? 0) - (b.price ?? 0))
+                : ((b.price ?? 0) - (a.price ?? 0))
+        );
+        // (opzionale) potresti qui anche applicare filtri per tag/artigiani/materiali
+        setFiltered(data);
+    }, [items, maxPrice, sortAsc]);
 
     return (
         <Layout>
-            <h1 style={{ padding: '1rem' }}>{title}</h1>
-            <ShelfSection title="">
-                {items.map((item) =>
-                    isAuth ? (
-                        <AuthProductCard
-                            key={item.id}
-                            product={item as AuthProduct}
-                            onAdd={() => addToCart(item.id)}
-                        />
-                    ) : (
+            <div className="flex items-center p-4 bg-red-600 text-white">
+                <button onClick={() => setOpen(true)}>
+                    <FiFilter size={24} />
+                </button>
+                <h1 className="flex-1 text-center text-2xl">{title}</h1>
+            </div>
+
+            <div className="flex">
+                <FilterSidebar
+                    open={open}
+                    setOpen={setOpen}
+                    maxPrice={maxPrice}
+                    setMaxPrice={setMaxPrice}
+                    sortAsc={sortAsc}
+                    setSortAsc={setSortAsc}
+                    selectedTags={selectedTags}
+                    setSelectedTags={setSelectedTags}
+                    selectedArtisans={selectedArtisans}
+                    setSelectedArtisans={setSelectedArtisans}
+                    selectedMaterials={selectedMaterials}
+                    setSelectedMaterials={setSelectedMaterials}
+                />
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4 flex-1">
+                    {(isAuth ? filtered : items).map(p => (
                         <ProductCard
-                            key={item.id}
-                            product={item as PublicProduct}
+                            key={p.id}
+                            product={p}
+                            showPrice={isAuth}
                         />
-                    )
-                )}
-            </ShelfSection>
+                    ))}
+                </div>
+            </div>
         </Layout>
     );
 };
 
-export default CategoryPage;
-
 export const getServerSideProps: GetServerSideProps<Props> = async ({ params, req }) => {
-    const rawSlug = params?.slug;
-    const slug = Array.isArray(rawSlug) ? rawSlug[0] : rawSlug || '';
-
-    const mapping: Record<string, string> = {
-        'grandi-classici': 'Grandi classici',
-        'nuova-collezione': 'Nuova collezione',
-        'piu-venduti': 'I più venduti',
-    };
-    const title = mapping[slug] ?? slug;
-
-    const prods = await prisma.product.findMany({
-        where: { category: { slug } },
-        take: 3,
-        orderBy: { createdAt: 'desc' },
+    const slug = Array.isArray(params?.slug) ? params.slug[0] : params?.slug!;
+    const cat = await prisma.category.findUnique({
+        where: { slug },
+        include: { products: { orderBy: { createdAt: "desc" } } },
     });
+    if (!cat) return { notFound: true };
 
     const payload = getPayloadFromReq(req as any);
-    const items = prods.map((p) => {
-        const common = {
-            id: p.id,
-            name: p.name,
-            image: p.imageUrl ?? null,
-        };
-        if (payload) {
-            return {
-                ...common,
-                price: p.price,
-            } as AuthProduct;
-        } else {
-            return {
-                ...common,
-                price: null,
-            } as PublicProduct & { price: null };
-        }
-    });
-
-    return { props: { title, items } };
+    return {
+        props: {
+            title: cat.name,
+            items: cat.products.map(p => ({
+                id: p.id,
+                name: p.name,
+                imageUrl: p.imageUrl,
+                price: payload ? p.price : null,
+            })),
+            isAuth: Boolean(payload),
+        },
+    };
 };
+
+export default ScaffalePage;
