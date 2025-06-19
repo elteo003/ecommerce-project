@@ -1,3 +1,4 @@
+// components/ui/ProductCard.tsx
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -11,7 +12,6 @@ interface Product {
   imageUrl?: string | null;
   price?: number | null;
 }
-
 interface ProductCardProps {
   product: Product;
   showPrice: boolean;
@@ -24,10 +24,7 @@ export default function ProductCard({ product, showPrice }: ProductCardProps) {
   const [img, setImg] = useState(product.imageUrl || '/img/default.jpg');
 
   const handleBuy = () => {
-    if (status !== 'authenticated') {
-      router.push('/login');
-      return;
-    }
+    if (status !== 'authenticated') return;
     addItem({
       id: product.id,
       name: product.name,
@@ -40,8 +37,8 @@ export default function ProductCard({ product, showPrice }: ProductCardProps) {
   return (
     <div className="flex flex-col border rounded-lg overflow-hidden">
       <Link
-        href={`/product/${product.id}`}
-        className="block"
+        href={`pages/product/${product.id}`}
+        className="block no-underline"
       >
         <img
           src={img}
@@ -50,26 +47,27 @@ export default function ProductCard({ product, showPrice }: ProductCardProps) {
           onError={() => setImg('/img/default.jpg')}
         />
         <div className="p-2">
-          <h3 className="font-semibold">{product.name}</h3>
+          <h3 className="font-semibold text-lg">{product.name}</h3>
           {product.description && (
             <p className="text-sm text-gray-600 mt-1">{product.description}</p>
           )}
         </div>
       </Link>
+
       {showPrice && product.price != null && (
         <div className="px-2">
           <span className="font-bold">€ {product.price.toFixed(2)}</span>
         </div>
       )}
-      <button
-        onClick={handleBuy}
-        className={`mt-auto m-2 py-2 rounded ${status === 'authenticated'
-            ? 'bg-red-600 text-white hover:bg-red-700'
-            : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-          }`}
-      >
-        {status === 'authenticated' ? 'Aggiungi al carrello' : 'Effettua il login'}
-      </button>
+
+      {status === 'authenticated' && (
+        <button
+          onClick={handleBuy}
+          className="mt-auto m-2 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Aggiungi al carrello
+        </button>
+      )}
     </div>
   );
 }
