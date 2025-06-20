@@ -19,7 +19,7 @@ export default function AuthProductCard({ product, onAdd }: AuthProductCardProps
   return (
     <div className="border rounded-lg overflow-hidden flex flex-col">
       <Link
-        href={`pages/product/${product.id}`}
+        href={`/product/${product.id}`}
         className="block"
       >
         <img

@@ -64,9 +64,31 @@ export default function SidebarMenu({
 
                         {!isAuthenticated ? (
                             <>
-                                <li><button onClick={() => navigateAndClose('/login')}>Accedi</button></li>
-                                <li><button onClick={() => navigateAndClose('/register')}>Registrati</button></li>
-                                <li><button onClick={() => navigateAndClose('/auth/artisan-login')}>Login Artigiani</button></li>
+                                <li>
+                                    <button
+                                        onClick={() => navigateAndClose('/auth/login')}
+                                        style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', textAlign: 'left', width: '100%' }}
+                                    >
+                                        Accedi
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        onClick={() => navigateAndClose('/auth/register')}
+                                        style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', textAlign: 'left', width: '100%' }}
+                                    >
+                                        Registrati
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        onClick={() => navigateAndClose('/auth/artisan-login')}
+                                        style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', textAlign: 'left', width: '100%' }}
+                                    >
+                                        Login Artigiani
+                                    </button>
+                                </li>
+
                             </>
                         ) : (
                             <>

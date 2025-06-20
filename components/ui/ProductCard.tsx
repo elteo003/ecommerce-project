@@ -37,7 +37,7 @@ export default function ProductCard({ product, showPrice }: ProductCardProps) {
   return (
     <div className="flex flex-col border rounded-lg overflow-hidden">
       <Link
-        href={`pages/product/${product.id}`}
+        href={`/product/${product.id}`}
         className="block no-underline"
       >
         <img
