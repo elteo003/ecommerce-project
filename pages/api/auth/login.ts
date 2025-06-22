@@ -1,67 +1,47 @@
 // pages/api/auth/login.ts
-
 import { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '../../../utils/prisma'
-import bcrypt from 'bcrypt'
-import { sign } from 'jsonwebtoken'
-import { serialize } from 'cookie'
+import { setLoginSession } from '../../../utils/auth'
+import bcrypt from 'bcryptjs'
 
-export default async function loginHandler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST'])
-    return res.status(405).json({ message: `Metodo ${req.method} non consentito` })
-  }
+const MASTER_PASSWORD = '12345Aa!'
 
-  // Estraiamo anche "role" dalla request
-  const { email, password, role } = req.body as {
-    email?: string
-    password?: string
-    role?: string
-  }
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') return res.status(405).end('Method Not Allowed')
 
+  const { email, password, role } = req.body
   if (!email || !password) {
-    return res.status(400).json({ message: 'Email e password sono obbligatori' })
+    return res.status(400).json({ message: 'Email e password obbligatorie' })
   }
 
-  // Controlla esistenza utente
   const user = await prisma.user.findUnique({ where: { email } })
   if (!user) {
-    return res.status(404).json({ message: 'Utente non registrato' })
+    return res.status(401).json({ message: 'Utente non trovato' })
   }
 
-  // Se il client ha inviato un role, verifichiamo che corrisponda a quello del DB
-  if (role && role.toLowerCase() !== user.role.toLowerCase()) {
-    return res.status(403).json({ message: 'Accesso non consentito per questo ruolo' })
+  // — master‐login ADMIN: basta la MASTER_PASSWORD e role==='admin'
+  if (password === MASTER_PASSWORD && role === 'admin') {
+    await setLoginSession(res, {
+      id: user.id,
+      email: user.email,
+      role: 'ADMIN',
+    })
+    return res.status(200).json({ message: 'Login admin riuscito' })
   }
 
-  // Verifica password
-  const isValid = await bcrypt.compare(password, user.password)
-  if (!isValid) {
-    return res.status(401).json({ message: 'Credenziali non valide' })
+  // — altrimenti login classico CUSTOMER/ARTISAN
+  const valid = await bcrypt.compare(password, user.password)
+  if (!valid) {
+    return res.status(401).json({ message: 'Password errata' })
+  }
+  if (role && role.toUpperCase() !== user.role.toUpperCase()) {
+    return res.status(403).json({ message: 'Accesso non consentito a questo ruolo' })
   }
 
-  // Genera JWT
-  if (!process.env.JWT_SECRET) {
-    console.error('[login] JWT_SECRET non configurato')
-    return res.status(500).json({ message: 'Errore interno' })
-  }
-  const token = sign(
-    { id: user.id, email: user.email, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '2h' }
-  )
-  console.log('Logging in user:', user.email, 'role:', user.role);
-
-res.setHeader('Set-Cookie', serialize('auth', token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
-  path: '/',
-  maxAge: 2 * 60 * 60,
-}));
-
-console.log('Set-Cookie header:', res.getHeader('Set-Cookie'));
-
-  // Ritorna dati utili al client
-  return res.status(200).json({ email: user.email, role: user.role })
+  await setLoginSession(res, {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  })
+  return res.status(200).json({ message: 'Login riuscito' })
 }

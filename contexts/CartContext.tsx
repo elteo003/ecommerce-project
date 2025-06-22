@@ -1,60 +1,133 @@
-// context/CartContext.tsx
-import React, { createContext, useContext, useEffect, useState } from "react";
+// contexts/CartContext.tsx
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
 
 export interface CartItem {
-  id: string;
+  productId: string;
   name: string;
+  image: string | null;
   price: number;
   quantity: number;
-  image: string | null;
+}
+
+export interface Order {
+  id: string;
+  createdAt: string;
+  total: number;
+  items: CartItem[];
 }
 
 interface CartContextType {
   items: CartItem[];
-  pastOrders: CartItem[][];
-  addItem: (item: CartItem) => void;
-  clearCart: () => void;
+  pastOrders: Order[];
+  addItem: (productId: string, quantity: number) => Promise<void>;
+  updateItem: (productId: string, quantity: number) => Promise<void>;
+  removeItem: (productId: string) => Promise<void>;
+  clearCart: () => Promise<void>;
+  checkout: () => Promise<void>;
+  reload: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
-  const [pastOrders, setPastOrders] = useState<CartItem[][]>([]);
+  const [pastOrders, setPastOrders] = useState<Order[]>([]);
 
-  // carica da localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("cart");
-    const past = localStorage.getItem("pastOrders");
-    if (saved) setItems(JSON.parse(saved));
-    if (past) setPastOrders(JSON.parse(past));
-  }, []);
-
-  // salva su localStorage
-  useEffect(() => { localStorage.setItem("cart", JSON.stringify(items)); }, [items]);
-  useEffect(() => { localStorage.setItem("pastOrders", JSON.stringify(pastOrders)); }, [pastOrders]);
-
-  const addItem = (item: CartItem) => {
-    setItems(curr => {
-      const exist = curr.find(i => i.id === item.id);
-      if (exist) {
-        return curr.map(i =>
-          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
-        );
-      }
-      return [...curr, item];
-    });
-  };
-
-  const clearCart = () => {
-    if (items.length) {
-      setPastOrders(p => [...p, items]);
+  const load = async () => {
+    if (!isAuthenticated) {
       setItems([]);
+      setPastOrders([]);
+      return;
+    }
+    // Carica carrello attivo
+    const cartRes = await fetch('/api/cart', { credentials: 'include' });
+    if (cartRes.ok) {
+      const { items: raw } = await cartRes.json();
+      setItems(
+      raw.map((ci: any) => ({
+      productId: ci.productId,
+      name: ci.name,
+      image: ci.imageUrl,
+      price: ci.price,
+      quantity: ci.quantity,
+   }))
+    );
+    }
+    // Carica ordini passati
+    const ordersRes = await fetch('/api/orders', { credentials: 'include' });
+    if (ordersRes.ok) {
+      const { orders } = await ordersRes.json();
+      setPastOrders(
+        orders.map((o: any) => ({
+          id: o.id,
+          createdAt: o.createdAt,
+          total: o.total,
+          items: o.items.map((i: any) => ({
+            productId: i.productId,
+            name: i.name,
+            image: null,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+        }))
+      );
     }
   };
 
+  useEffect(() => {
+    load();
+  }, [isAuthenticated]);
+
+  const addItem = async (productId: string, quantity: number) => {
+    await fetch('/api/cart', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, quantity }),
+    });
+    await load();
+  };
+
+  const updateItem = async (productId: string, quantity: number) => {
+    await fetch(`/api/cart/${productId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quantity }),
+    });
+    await load();
+  };
+
+  const removeItem = async (productId: string) => {
+    await fetch(`/api/cart/${productId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    await load();
+  };
+
+  const clearCart = async () => {
+    await fetch('/api/cart', {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    await load();
+  };
+
+  const checkout = async () => {
+    await fetch('/api/checkout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    await load();
+  };
+
   return (
-    <CartContext.Provider value={{ items, pastOrders, addItem, clearCart }}>
+    <CartContext.Provider
+      value={{ items, pastOrders, addItem, updateItem, removeItem, clearCart, checkout, reload: load }}
+    >
       {children}
     </CartContext.Provider>
   );
@@ -62,6 +135,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export function useCart() {
   const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart deve essere usato dentro CartProvider");
+  if (!ctx) throw new Error('useCart deve essere usato dentro CartProvider');
   return ctx;
 }

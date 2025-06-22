@@ -1,9 +1,9 @@
 // components/ui/ProductCard.tsx
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useCart, CartItem } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCart } from '../../contexts/CartContext';
 
 interface Product {
   id: string;
@@ -12,34 +12,30 @@ interface Product {
   imageUrl?: string | null;
   price?: number | null;
 }
+
 interface ProductCardProps {
   product: Product;
   showPrice: boolean;
 }
 
 export default function ProductCard({ product, showPrice }: ProductCardProps) {
-  const { data: session, status } = useSession();
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
   const { addItem } = useCart();
   const [img, setImg] = useState(product.imageUrl || '/img/default.jpg');
 
   const handleBuy = () => {
-    if (status !== 'authenticated') return;
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price!,
-      quantity: 1,
-    } as CartItem);
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    addItem(product.id, 1);
     router.push('/cart');
   };
 
   return (
     <div className="flex flex-col border rounded-lg overflow-hidden">
-      <Link
-        href={`/product/${product.id}`}
-        className="block no-underline"
-      >
+      <Link href={`/product/${product.id}`} className="block no-underline">
         <img
           src={img}
           alt={product.name}
@@ -60,7 +56,7 @@ export default function ProductCard({ product, showPrice }: ProductCardProps) {
         </div>
       )}
 
-      {status === 'authenticated' && (
+      {isAuthenticated && (
         <button
           onClick={handleBuy}
           className="mt-auto m-2 py-2 bg-red-600 text-white rounded hover:bg-red-700"
@@ -71,3 +67,4 @@ export default function ProductCard({ product, showPrice }: ProductCardProps) {
     </div>
   );
 }
+

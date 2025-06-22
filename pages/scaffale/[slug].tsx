@@ -1,3 +1,4 @@
+// pages/categories/[slug].tsx
 import { GetServerSideProps, NextPage } from 'next';
 import React, { useState, useEffect } from 'react';
 import prisma from '../../utils/prisma';
@@ -6,6 +7,7 @@ import Layout from '../../components/Layout';
 import FilterSidebar from '../../components/FilterSidebar';
 import ProductCard from '../../components/ui/ProductCard';
 import { FiFilter } from 'react-icons/fi';
+import Link from 'next/link';
 
 interface Product {
   id: string;
@@ -29,8 +31,14 @@ const ScaffalePage: NextPage<Props> = ({ title, items, isAuthenticated }) => {
 
   useEffect(() => {
     let data = [...items];
-    if (maxPrice !== Infinity) data = data.filter(p => (p.price ?? 0) <= maxPrice);
-    data.sort((a, b) => sortPriceAsc ? ((a.price ?? 0) - (b.price ?? 0)) : ((b.price ?? 0) - (a.price ?? 0)));
+    if (maxPrice !== Infinity) {
+      data = data.filter(p => (p.price ?? 0) <= maxPrice);
+    }
+    data.sort((a, b) =>
+      sortPriceAsc
+        ? ( (a.price ?? 0) - (b.price ?? 0) )
+        : ( (b.price ?? 0) - (a.price ?? 0) )
+    );
     setFiltered(data);
   }, [items, maxPrice, sortPriceAsc]);
 
@@ -40,8 +48,12 @@ const ScaffalePage: NextPage<Props> = ({ title, items, isAuthenticated }) => {
         <button
           onClick={() => setOpen(true)}
           className="p-2 mr-4 text-2xl text-white hover:text-gray-200"
-        ><FiFilter /></button>
-        <h1 className="text-3xl font-bold text-white flex-1 text-center">{title}</h1>
+        >
+          <FiFilter />
+        </button>
+        <h1 className="text-3xl font-bold text-white flex-1 text-center">
+          {title}
+        </h1>
       </div>
 
       <div className="flex relative">
@@ -62,10 +74,18 @@ const ScaffalePage: NextPage<Props> = ({ title, items, isAuthenticated }) => {
 
         <section className="flex-1 px-4 pb-6">
           <div
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '0.75rem',
+            }}
           >
             {(isAuthenticated ? filtered : items).map(p => (
-              <ProductCard key={p.id} product={p} showPrice={isAuthenticated} />
+              <Link key={p.id} href={`/products/${p.id}`} passHref>
+                <a>
+                  <ProductCard product={p} showPrice={isAuthenticated} />
+                </a>
+              </Link>
             ))}
           </div>
         </section>
@@ -79,7 +99,10 @@ const ScaffalePage: NextPage<Props> = ({ title, items, isAuthenticated }) => {
   );
 };
 
-export const getServerSideProps: GetServerSideProps<Props> = async ({ params, req }) => {
+export const getServerSideProps: GetServerSideProps<Props> = async ({
+  params,
+  req,
+}) => {
   const slug = Array.isArray(params?.slug) ? params.slug[0] : params?.slug || '';
   const category = await prisma.category.findUnique({
     where: { slug },

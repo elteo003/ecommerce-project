@@ -1,4 +1,4 @@
-/* styles/globals.css */
+
 
 @tailwind base;
 @tailwind components;
@@ -13,7 +13,6 @@
     opacity: 0;
     transform: translateY(20px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -23,24 +22,23 @@
 .shelf-enter {
   opacity: 0;
 }
-
 .shelf-enter-active {
   opacity: 1;
   animation: fadeInUp 0.8s ease-out forwards;
 }
 
+/* ✅ FIX scroll su tutte le pagine e blocco del rimbalzo */
+html, body {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
 
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-
-  background: linear-gradient(135deg,
-      #b91c1c 0%,
-      /* rosso pieno (Tailwind red-700) */
-      #7f1d1d 100%
-      /* bordeaux scuro (Tailwind red-900 simile) */
-    );
+  background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
   color: white;
   font-family: "Inter", sans-serif;
 }
@@ -50,10 +48,8 @@ a {
   color: white;
   text-decoration: underline;
 }
-
 a:hover {
-  color: #f87171;
-  /* Tailwind red-400 */
+  color: #f87171; /* Tailwind red-400 */
 }
 
 /* Pulsanti trasparenti, nessun bordo di default */
@@ -63,16 +59,29 @@ button {
   cursor: pointer;
 }
 
-/* Firefox */
+/* Rimozione scrollbar */
 main {
   scrollbar-width: none;
-  /* rimuove la scrollbar */
   -ms-overflow-style: none;
-  /* IE 10+ */
 }
-
-/* Webkit (Chrome, Edge, Safari) */
 main::-webkit-scrollbar {
   width: 0;
   height: 0;
+}
+
+/* Nasconde visivamente la scrollbar dove applicato */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE e Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE+ */
+  scrollbar-width: none;     /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
 }

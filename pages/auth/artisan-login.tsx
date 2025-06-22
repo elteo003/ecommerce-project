@@ -21,7 +21,7 @@ export default function ArtisanLogin() {
     });
     if (res.ok) {
       // Forza il redirect completo a /dashboard
-      window.location.href = '/dashboard';
+      window.location.href = '/artigiani';
     } else {
       const { message } = await res.json();
       setError(message || 'Login fallito');

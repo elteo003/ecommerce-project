@@ -3,6 +3,7 @@ import React, { ReactNode, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import SidebarMenu from './ui/SidebarMenu'
 import ScrollNav from './ui/ScrollNav'
+import { useRouter } from 'next/router'
 
 interface LayoutProps {
   children: ReactNode
@@ -10,17 +11,27 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
+  const router = useRouter()
 
-  // Hero è il primo child, scaffali il resto
+  // distinzione admin vs frontend
+  const isAdminRoute = router.pathname.startsWith('/admin')
+
+  // Hero + scaffali
   const sections = React.Children.toArray(children)
   const hero = sections[0]
   const shelves = sections.slice(1)
   const sectionIds = shelves.map((_, i) => `scaffale-${i + 1}`)
 
+  // mostro pallini solo su frontend
+  const showScrollNav =
+    !isAdminRoute &&
+    sectionIds.length > 0 &&
+    !router.pathname.startsWith('/auth/login')
+
   return (
     <div className="layout relative flex flex-col h-screen overflow-hidden">
-      {/* Pulsante hamburger fisso in alto a destra */}
+      {/* hamburger */}
       <button
         onClick={() => setMenuOpen(o => !o)}
         className="fixed top-4 right-4 z-50 p-2 bg-transparent hover:bg-white/10 rounded-lg"
@@ -29,28 +40,35 @@ export default function Layout({ children }: LayoutProps) {
         <img src="/img/hamburger.png" alt="Menu" width={28} height={28} />
       </button>
 
-      {/* SidebarMenu e ScrollNav */}
+      {/* Sidebar: 
+          – se /admin, forza come ospite => isAuthenticated={false}
+          – altrimenti usa il vero stato */}
       <SidebarMenu
-  open={menuOpen}
-  onClose={() => setMenuOpen(false)}
-  isAuthenticated={Boolean(user)}
-  isArtisan={user?.role === 'artisan'}
-/>
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        isAuthenticated={isAdminRoute ? false : isAuthenticated}
+        isArtisan={false}
+        isAdmin={false}
+      />
 
-      <ScrollNav sectionIds={sectionIds} />
+      {showScrollNav && <ScrollNav sectionIds={sectionIds} />}
 
-      {/* Contenuto principale */}
-      <main className="mt-0 flex-1 overflow-y-auto scroll-smooth snap-y snap-mandatory pt-0">
-        {/* Hero full-screen */}
+      <main
+        className={
+          // se /admin → scroll normale
+          isAdminRoute
+            ? 'flex-1 overflow-y-auto scrollbar-hide'
+            : 'mt-0 flex-1 overflow-y-auto scroll-smooth snap-y snap-mandatory pt-0'
+        }
+      >
         <section id="hero" className="h-screen snap-start">
           {hero}
         </section>
-        {/* Scaffali full-screen, con spazio per l’header */}
         {shelves.map((child, idx) => (
           <section
             key={idx}
             id={`scaffale-${idx + 1}`}
-            className="h-screen pt-0 snap-start"
+            className={isAdminRoute ? '' : 'h-screen snap-start'}
           >
             {child}
           </section>

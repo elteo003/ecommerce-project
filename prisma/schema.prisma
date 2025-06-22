@@ -1,101 +1,103 @@
+// prisma/schema.prisma
+
 datasource db {
-  provider = "postgresql" // o "mysql" / "sqlite"
-  url      = env("DATABASE_URL")
+provider = "postgresql"
+url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+provider = "prisma-client-js"
 }
 
 /// Ruoli utente
 enum Role {
-  CUSTOMER @map("USER")
-  ARTISAN
+CUSTOMER @map("USER")
+ARTISAN
 }
 
-/// Stati dell’ordine
+/// Stati dell'ordine
 enum OrderStatus {
-  PENDING
-  PAID
-  SHIPPED
-  CANCELLED
+PENDING
+PAID
+SHIPPED
+CANCELLED
 }
 
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  password  String
-  role      Role       @default(CUSTOMER)
-  firstName String     @default("")
-  lastName  String     @default("")
-  cartItems CartItem[] // 1-N → CartItem.user
-  orders    Order[] // 1-N → Order.user
+id        String     @id @default(uuid())
+email     String     @unique
+password  String
+role      Role       @default(CUSTOMER)
+firstName String     @default("")
+lastName  String     @default("")
+cartItems CartItem[]
+orders    Order[]
 
-  @@map("users")
+@@map("users")
 }
 
 model Category {
-  id       String    @id @default(uuid())
-  name     String
-  slug     String    @unique
-  products Product[] // 1-N → Product.category
+id       String    @id @default(uuid())
+name     String
+slug     String    @unique
+products Product[]
 
-  @@map("categories")
+@@map("categories")
 }
 
 model Product {
-  id          String      @id @default(uuid())
-  name        String
-  description String?
-  price       Float
-  imageUrl    String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  category    Category?   @relation(fields: [categoryId], references: [id])
-  categoryId  String?
-  cartItems   CartItem[] // 1-N → CartItem.product
-  orderItems  OrderItem[] // 1-N → OrderItem.product
+id          String      @id @default(uuid())
+name        String
+description String?
+price       Float
+imageUrl    String?
+createdAt   DateTime    @default(now())
+updatedAt   DateTime    @updatedAt
+category    Category?   @relation(fields: [categoryId], references: [id])
+categoryId  String?
+cartItems   CartItem[]
+orderItems  OrderItem[]
 
-  @@map("products")
+@@map("products")
 }
 
 model CartItem {
-  id        String   @id @default(uuid())
-  quantity  Int      @default(1)
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  product   Product  @relation(fields: [productId], references: [id])
-  productId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+id        String   @id @default(uuid())
+quantity  Int      @default(1)
+user      User     @relation(fields: [userId], references: [id])
+userId    String
+product   Product  @relation(fields: [productId], references: [id])
+productId String
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 
-  @@unique([userId, productId])
-  @@map("cart_items")
+@@unique([userId, productId])
+@@map("cart_items")
 }
 
 model Order {
-  id        String      @id @default(uuid())
-  user      User        @relation(fields: [userId], references: [id])
-  userId    String
-  items     OrderItem[] // 1-N → OrderItem.order
-  total     Float
-  status    OrderStatus @default(PENDING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+id        String      @id @default(uuid())
+user      User        @relation(fields: [userId], references: [id])
+userId    String
+items     OrderItem[]
+total     Float
+status    OrderStatus @default(PENDING)
+createdAt DateTime    @default(now())
+updatedAt DateTime    @updatedAt
 
-  @@map("orders")
+@@map("orders")
 }
 
 model OrderItem {
-  id        String   @id @default(uuid())
-  order     Order    @relation(fields: [orderId], references: [id])
-  orderId   String
-  product   Product  @relation(fields: [productId], references: [id])
-  productId String
-  quantity  Int
-  price     Float // snapshot del prezzo al momento dell’acquisto
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+id        String   @id @default(uuid())
+order     Order    @relation(fields: [orderId], references: [id])
+orderId   String
+product   Product  @relation(fields: [productId], references: [id])
+productId String
+quantity  Int
+price     Float
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 
-  @@map("order_items")
+@@map("order_items")
 }

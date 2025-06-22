@@ -1,4 +1,3 @@
-// components/FilterSidebar.tsx
 import React from 'react';
 
 interface FilterSidebarProps {
@@ -7,8 +6,8 @@ interface FilterSidebarProps {
   maxPrice: number;
   setMaxPrice: (price: number) => void;
   /** true = crescente, false = decrescente */
-  sortAsc: boolean;
-  setSortAsc: (val: boolean) => void;
+  sortPriceAsc: boolean;
+  setSortPriceAsc: (val: boolean) => void;
   selectedTags: string[];
   setSelectedTags: (tags: string[]) => void;
   selectedArtisans: string[];
@@ -22,8 +21,8 @@ export default function FilterSidebar({
   setOpen,
   maxPrice,
   setMaxPrice,
-  sortAsc,
-  setSortAsc,
+  sortPriceAsc,
+  setSortPriceAsc,
   selectedTags,
   setSelectedTags,
   selectedArtisans,
@@ -33,8 +32,9 @@ export default function FilterSidebar({
 }: FilterSidebarProps) {
   return (
     <aside
-      className={`fixed top-0 left-0 h-full w-64 bg-black text-white shadow-xl transform transition-transform duration-300 z-50 ${open ? 'translate-x-0' : '-translate-x-full'
-        }`}
+      className={`fixed top-0 left-0 h-full w-64 bg-black text-white shadow-xl transform transition-transform duration-300 z-50 ${
+        open ? 'translate-x-0' : '-translate-x-full'
+      }`}
     >
       <div className="flex flex-col h-full p-6">
         <button
@@ -69,11 +69,11 @@ export default function FilterSidebar({
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={sortAsc}
-              onChange={() => setSortAsc(!sortAsc)}
+              checked={sortPriceAsc}
+              onChange={() => setSortPriceAsc(!sortPriceAsc)}
               className="accent-white"
             />
-            {sortAsc ? 'Crescente' : 'Decrescente'}
+            {sortPriceAsc ? 'Crescente' : 'Decrescente'}
           </label>
         </div>
 
@@ -138,7 +138,7 @@ export default function FilterSidebar({
         <button
           onClick={() => {
             setMaxPrice(Infinity);
-            setSortAsc(true);
+            setSortPriceAsc(true);
             setSelectedTags([]);
             setSelectedArtisans([]);
             setSelectedMaterials([]);
